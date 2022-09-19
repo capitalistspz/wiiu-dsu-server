@@ -1,5 +1,8 @@
 #pragma once
 // This code is taken from https://rosettacode.org/wiki/CRC-32#C++
+//
+//
+
 #include <algorithm>
 #include <array>
 #include <cstdint>

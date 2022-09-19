@@ -25,7 +25,12 @@ namespace sockets {
                 throw std::invalid_argument("address");
             m_address_in.sin_port = htons(port_number);
         }
-        endpoint(uint32_t address, uint16_t port_number) : m_address_in() {
+        /**
+         *
+         * @param address ip address in bytes representation
+         * @param port_number
+         */
+        endpoint(in_addr_t address, uint16_t port_number) : m_address_in() {
             m_address_in.sin_family = AF_INET;
             m_address_in.sin_addr.s_addr = htonl(address);
             m_address_in.sin_port = htons(port_number);

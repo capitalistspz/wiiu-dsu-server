@@ -96,7 +96,7 @@ public:
             : letype((T)value.value()) {}
 
     // assigns
-    static letype from_bevalue(T value)
+    static letype from_levalue(T value)
     {
         letype result;
         result.m_value = value;
@@ -107,7 +107,7 @@ public:
     constexpr T value() const { return SwapEndian<T>(m_value); }
 
     // returns BE comparison_value
-    constexpr T bevalue() const { return m_value; }
+    constexpr T levalue() const { return m_value; }
 
     constexpr operator T() const { return value(); }
 
@@ -181,7 +181,7 @@ public:
 
     letype<T> operator~() const requires std::integral<T>
     {
-        return from_bevalue(T(~m_value));
+        return from_levalue(T(~m_value));
     }
 
     letype<T>& operator++() requires std::integral<T>

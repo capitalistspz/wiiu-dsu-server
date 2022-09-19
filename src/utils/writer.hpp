@@ -21,27 +21,51 @@ namespace utils {
          * */
         explicit writer(uint8_t* container1, size_t size, size_t offset = 0)
                 : m_data(container1 + offset), m_cursor(0), m_end(size){}
+
         template <typename T> requires (!std::is_pointer_v<T>)
+        /**
+         *
+         * @tparam T type to be written into the buffer
+         * @param value value to be read into the writer
+         */
         void write(const T& value){
             memcpy(m_data + m_cursor, &value, sizeof(value));
             m_cursor += sizeof(value);
         }
+
+
         template <typename T> requires (!std::is_pointer_v<T>)
+        /**
+         *
+         * @tparam T type to be written into the buffer
+         * @param value value to be read into the writer
+         */
         void write(const T&& value){
             memcpy(m_data + m_cursor, &value, sizeof(value));
             m_cursor += sizeof(value);
 
         }
-
+        /**
+         *
+         * @param outBuffer the vector for the data to be written to
+         * @param size number of bytes to read to the buffer
+         * @param offset start position to within the buffer
+         */
         void write(const std::vector<uint8_t>& out_container, size_t size, size_t offset = 0){
             std::copy(out_container.begin() + offset,  out_container.begin() + offset + size, m_data + m_cursor);
 
         }
-
-        void write(const uint8_t* out_container, size_t size, size_t offset = 0){
-            std::copy(out_container + offset,out_container + offset + size, m_data + m_cursor);
+        /**
+         *
+         * @param outBuffer the buffer for the data to be copied from
+         * @param size number of bytes to read from the buffer
+         * @param offset start position to within the buffer
+         */
+        void write(const uint8_t* outBuffer, size_t size, size_t offset = 0){
+            std::copy(outBuffer + offset, outBuffer + offset + size, m_data + m_cursor);
 
         }
+
         /**
          *
          * @param src pointer to the beginning of some memory
@@ -65,10 +89,19 @@ namespace utils {
             }
             return false;
         };
+
+        /**
+         * Move the writer cursor to the location
+         * @return the position of the cursor
+         */
         [[nodiscard]] auto pos() const {
             return m_cursor;
         }
 
+        /**
+         *
+         * @return max space that can be taken by this writer
+         */
         [[nodiscard]] auto capacity() const{
             return m_end;
         }

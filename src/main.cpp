@@ -24,10 +24,8 @@
 
 std::unordered_map<sockets::endpoint, net::client> clients;
 
-std::unordered_map<VPADButtons, DSU::ButtonGroup2> face_button_map;
-std::unordered_map<VPADButtons, DSU::ButtonGroup1> non_face_button_map;
-
-
+std::unordered_map<VPADButtons, DSU::ButtonGroup1> button_group_1;
+std::unordered_map<VPADButtons, DSU::ButtonGroup2> button_group_2;
 
 bool running = false;
 
@@ -87,7 +85,9 @@ void start_server(){
 void server_loop(sockets::udp_socket& socket){
     std::array<uint8_t, 1024> bufferIn{};
     std::array<uint8_t, 1024> bufferOut{};
+
     constexpr sockets::endpoint defaultEp{};
+
     while (running && WHBProcIsRunning()){
         sockets::endpoint senderEp{};
         ssize_t recvBytes = 0;
@@ -211,12 +211,12 @@ void server_loop(sockets::udp_socket& socket){
                 data.connected = true;
                 data.packet_number = ++clients[senderEp].packet_number;
 
-                for (auto kp : non_face_button_map){
+                for (auto kp : button_group_1){
                     if (vpadStatus.trigger & kp.first){
                         data.button_mask_1 = data.button_mask_1 | kp.second;
                     }
                 }
-                for (auto kp : face_button_map){
+                for (auto kp : button_group_2){
                     if (vpadStatus.trigger & kp.first){
                         data.button_mask_2 = data.button_mask_2 | kp.second;
                     }
@@ -252,8 +252,10 @@ void server_loop(sockets::udp_socket& socket){
 
                 packet.add_data(headerOut);
                 packet.add_data(data);
-
+                packet.set_crc32();
                 const auto sentBytes = socket.send_to(packet.begin(), packet.cursor(), sockets::msg_flags::DONT_WAIT, senderEp);
+                DEBUG_FUNCTION_LINE("Sent %d bytes", sentBytes)
+
             }
         }
 
@@ -264,22 +266,22 @@ void server_loop(sockets::udp_socket& socket){
 }
 
 void map_buttons(){
-    face_button_map[VPAD_BUTTON_A] = DSU::ButtonGroup2::A;
-    face_button_map[VPAD_BUTTON_B] = DSU::ButtonGroup2::B;
-    face_button_map[VPAD_BUTTON_X] = DSU::ButtonGroup2::X;
-    face_button_map[VPAD_BUTTON_Y] = DSU::ButtonGroup2::Y;
-    non_face_button_map[VPAD_BUTTON_LEFT] = DSU::ButtonGroup1::DPAD_LEFT;
-    non_face_button_map[VPAD_BUTTON_RIGHT] = DSU::ButtonGroup1::DPAD_RIGHT;
-    non_face_button_map[VPAD_BUTTON_UP] = DSU::ButtonGroup1::DPAD_UP;
-    non_face_button_map[VPAD_BUTTON_DOWN] = DSU::ButtonGroup1::DPAD_DOWN;
+    button_group_2[VPAD_BUTTON_A] = DSU::ButtonGroup2::A;
+    button_group_2[VPAD_BUTTON_B] = DSU::ButtonGroup2::B;
+    button_group_2[VPAD_BUTTON_X] = DSU::ButtonGroup2::X;
+    button_group_2[VPAD_BUTTON_Y] = DSU::ButtonGroup2::Y;
+    button_group_1[VPAD_BUTTON_LEFT] = DSU::ButtonGroup1::DPAD_LEFT;
+    button_group_1[VPAD_BUTTON_RIGHT] = DSU::ButtonGroup1::DPAD_RIGHT;
+    button_group_1[VPAD_BUTTON_UP] = DSU::ButtonGroup1::DPAD_UP;
+    button_group_1[VPAD_BUTTON_DOWN] = DSU::ButtonGroup1::DPAD_DOWN;
 
-    face_button_map[VPAD_BUTTON_ZL] = DSU::ButtonGroup2::L2;
-    face_button_map[VPAD_BUTTON_ZR] = DSU::ButtonGroup2::R2;
-    face_button_map[VPAD_BUTTON_L] = DSU::ButtonGroup2::L1;
-    face_button_map[VPAD_BUTTON_R] = DSU::ButtonGroup2::R1;
+    button_group_2[VPAD_BUTTON_ZL] = DSU::ButtonGroup2::L2;
+    button_group_2[VPAD_BUTTON_ZR] = DSU::ButtonGroup2::R2;
+    button_group_2[VPAD_BUTTON_L] = DSU::ButtonGroup2::L1;
+    button_group_2[VPAD_BUTTON_R] = DSU::ButtonGroup2::R1;
 
-    non_face_button_map[VPAD_BUTTON_PLUS] = DSU::ButtonGroup1::OPTIONS;
-    non_face_button_map[VPAD_BUTTON_MINUS] = DSU::ButtonGroup1::SHARE;
-    non_face_button_map[VPAD_BUTTON_STICK_L] = DSU::ButtonGroup1::L3;
-    non_face_button_map[VPAD_BUTTON_STICK_R] = DSU::ButtonGroup1::R3;
+    button_group_1[VPAD_BUTTON_PLUS] = DSU::ButtonGroup1::OPTIONS;
+    button_group_1[VPAD_BUTTON_MINUS] = DSU::ButtonGroup1::SHARE;
+    button_group_1[VPAD_BUTTON_STICK_L] = DSU::ButtonGroup1::L3;
+    button_group_1[VPAD_BUTTON_STICK_R] = DSU::ButtonGroup1::R3;
 }

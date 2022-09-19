@@ -4,12 +4,18 @@
 #include "../utils/crc.hpp"
 
 #include "DsuInfo.hpp"
-#include "../utils/logger.h"
 
 namespace DSU::Packets {
     struct PacketData {
+        /**
+         * Swaps endianness for any integer values that are supposed to be represented as multiple bytes,
+         * used due to the Wii U being Big Endian
+         */
         virtual void swap_member_endian() = 0;
 
+        /** Reads bytes from the reader into a structure
+         * @param writer the target writer
+         */
         virtual void read(utils::reader &) = 0;
 
         /** Writes bytes from the structure into a writer
@@ -17,6 +23,10 @@ namespace DSU::Packets {
          */
         virtual void write(utils::writer &) const = 0;
 
+        /**
+         *
+         * @return number of bytes taken by this piece of data
+         */
         [[nodiscard]] virtual size_t size() const = 0;
     };
 
@@ -25,7 +35,7 @@ namespace DSU::Packets {
         uint16_t protocol_version = 1001u;
         uint16_t packet_length;
         uint32_t crc_32;
-        uint32_t peer_id;
+        uint32_t peer_id{};
         DSUMessageType message_type;
 
         Header(DSUMessageType messageType, uint32_t CRC32) {
@@ -66,10 +76,6 @@ namespace DSU::Packets {
 
         [[nodiscard]] constexpr size_t size() const override {
             return 24;
-        }
-
-        [[nodiscard]] constexpr size_t crc32_pos() {
-            return 8;
         }
     };
     namespace Incoming {
@@ -344,11 +350,9 @@ namespace DSU::Packets {
             void add_data(PacketData& data){
 
                 data.swap_member_endian();
-                const auto pos = m_writer.pos();
                 data.write(m_writer);
 
                 const auto posCur = m_writer.pos();
-                DEBUG_FUNCTION_LINE("pos change = %u", posCur - pos)
 
                 m_writer.seek(6);
 

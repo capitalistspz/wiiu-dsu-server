@@ -60,6 +60,7 @@ namespace sockets {
         void set_option(sockets::option_name name);
 
 // Compiler doesn't allow split declaration for these
+
         template <typename Value>
         void set_option(sockets::option_name name, const Value &value) {
             const auto result = ::setsockopt(socket_fd, SOL_SOCKET, (int)name, &value, sizeof(value));
