@@ -3,7 +3,6 @@
 #include <iostream>
 #include <array>
 #include <cstring>
-#include <chrono>
 namespace DSU {
     const uint32_t server_id = static_cast<uint32_t>(std::rand());
     enum class DSUMessageType : uint32_t {
@@ -75,7 +74,7 @@ namespace DSU {
     }
 
     enum class RegistrationType : uint8_t {
-        SUBSCRIBE_ALL = 0x0,
+        SUBSCRIBE_ALL = 0x0, // Subscribes to all controllers
         SLOT_BASED = 0x1,
         MAC_BASED = 0x2
     };
@@ -90,11 +89,10 @@ namespace DSU {
     class MacAddress{
         std::array<uint8_t,6> m_data;
     public:
-        explicit MacAddress(std::array<uint8_t,6> data) : m_data(){
-            data = m_data;
+        explicit MacAddress(std::array<uint8_t,6> data) : m_data(data){
         }
         MacAddress(uint8_t* data, uint8_t offset) : m_data(){
-            std::copy(data, data + offset, m_data.begin());
+            std::copy(data + offset, data + offset + sizeof(m_data), m_data.begin());
         }
         MacAddress(uint32_t p1, uint16_t p2) : m_data(){
             std::memcpy(m_data.begin(), &p1, sizeof(p1));
@@ -109,7 +107,7 @@ namespace DSU {
         void SwapEndian(){
             constexpr auto length = 6;
             uint8_t temp;
-            for (int i=0;i<length/2;i++)
+            for (int i = 0; i < length / 2; i++)
             {
                 temp = m_data[i];
                 m_data[i] = m_data[length - i - 1];
