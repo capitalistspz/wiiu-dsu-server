@@ -116,3 +116,12 @@ namespace sockets {
         sockaddr_in m_address_in;
     };
 }
+namespace std {
+    template<>
+    struct std::hash<sockets::endpoint>{
+        std::size_t operator()(const sockets::endpoint & ep) const {
+            const auto socket_hash = std::hash<uint64_t>{}(ep.comparison_value());
+            return socket_hash;
+        }
+    };
+}
