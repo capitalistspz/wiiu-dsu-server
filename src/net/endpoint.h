@@ -18,7 +18,8 @@ namespace sockets {
          * @param address numbers-and-dots notation address e.g. 127.0.0.1
          * @param port_number
          */
-        endpoint(std::string_view address, uint16_t port_number) : m_address_in() {
+        endpoint(std::string_view address, uint16_t port_number)
+        : m_address_in() {
             m_address_in.sin_family = AF_INET;
             const auto result = inet_aton(address.data(), &m_address_in.sin_addr);
             if (result == 0)
@@ -30,7 +31,8 @@ namespace sockets {
          * @param address ip address in bytes representation
          * @param port_number
          */
-        endpoint(in_addr_t address, uint16_t port_number) : m_address_in() {
+        endpoint(in_addr_t address, uint16_t port_number)
+        : m_address_in() {
             m_address_in.sin_family = AF_INET;
             m_address_in.sin_addr.s_addr = htonl(address);
             m_address_in.sin_port = htons(port_number);
@@ -39,11 +41,13 @@ namespace sockets {
         explicit endpoint(const sockaddr_in& addr)
         :m_address_in(addr){}
 
-        endpoint(const sockaddr& addr, size_t size) : m_address_in(){
+        endpoint(const sockaddr& addr, size_t size)
+        : m_address_in(){
             std::memcpy(&m_address_in, &addr, size);
         }
 
-        explicit endpoint(const sockaddr_storage& storage){
+        explicit endpoint(const sockaddr_storage& storage)
+        : m_address_in() {
             std::memcpy(&m_address_in, &storage, sizeof(storage));
         }
 

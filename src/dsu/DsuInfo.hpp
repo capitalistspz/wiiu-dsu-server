@@ -89,12 +89,15 @@ namespace DSU {
     class MacAddress{
         std::array<uint8_t,6> m_data;
     public:
-        explicit MacAddress(std::array<uint8_t,6> data) : m_data(data){
+        explicit MacAddress(std::array<uint8_t,6> data)
+        : m_data(data){
         }
-        MacAddress(uint8_t* data, uint8_t offset) : m_data(){
+        MacAddress(uint8_t* data, uint8_t offset)
+        : m_data(){
             std::copy(data + offset, data + offset + sizeof(m_data), m_data.begin());
         }
-        MacAddress(uint32_t p1, uint16_t p2) : m_data(){
+        MacAddress(uint32_t p1, uint16_t p2)
+        : m_data(){
             std::memcpy(m_data.begin(), &p1, sizeof(p1));
             std::memcpy(m_data.begin() + sizeof(p1), &p2, sizeof(p2));
         }

@@ -45,8 +45,7 @@ namespace DSU::Packets {
         }
 
         Header()
-                : packet_length(sizeof(DSUMessageType)), message_type(DSUMessageType::INVALID), crc_32(0),
-                  peer_id(server_id) {}
+        : packet_length(sizeof(DSUMessageType)), message_type(DSUMessageType::INVALID), crc_32(0), peer_id(server_id) {}
 
         void swap_member_endian() override {
             protocol_version = SwapEndian(protocol_version);

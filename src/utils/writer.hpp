@@ -20,7 +20,7 @@ namespace utils {
          * @param offset the position to start from within the buffer
          * */
         explicit writer(uint8_t* container1, size_t size, size_t offset = 0)
-                : m_data(container1 + offset), m_cursor(0), m_end(size){}
+        : m_data(container1 + offset), m_cursor(0), m_end(size){}
 
         template <typename T> requires (!std::is_pointer_v<T>)
         /**
