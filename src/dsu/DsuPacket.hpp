@@ -2,6 +2,7 @@
 #include "../utils/reader.hpp"
 #include "../utils/writer.hpp"
 #include "../utils/crc.hpp"
+#include "../utils/h_array.hpp"
 
 #include "DsuInfo.hpp"
 
@@ -80,7 +81,7 @@ namespace DSU::Packets {
     namespace Incoming {
         struct ConnectedControllers : PacketData {
             int32_t report_port_count;
-            std::vector<uint8_t> port_id;
+            utils::h_array<uint8_t> port_id;
 
             void swap_member_endian() override {
                 report_port_count = SwapEndian(report_port_count);
@@ -88,12 +89,12 @@ namespace DSU::Packets {
 
             void read(utils::reader &reader) override {
                 reader.read(report_port_count);
-                reader.read(port_id, report_port_count);
+                reader.read(port_id.begin(), report_port_count);
             }
 
             void write(utils::writer &writer) const override {
                 writer.write(report_port_count);
-                writer.write(port_id, port_id.size());
+                writer.write(port_id.cbegin(), port_id.size());
             }
 
             [[nodiscard]] size_t size() const override {
