@@ -39,7 +39,7 @@ int main(){
     WHBLogPrint("Hello world");
 
     start_server();
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 
@@ -51,19 +51,12 @@ void start_server(){
     try {
         sockets::endpoint localEp{INADDR_ANY, 26760};
 
-        DEBUG_FUNCTION_LINE("Initialized local EP on %s:%u", localEp.address(), localEp.port())
-
-
         serverSocket.set_option<int>(sockets::option_name::REUSE_ADDRESS, 1);
-        //serverSocket.set_option<int>(sockets::option_name::NON_BLOCK, 1);
-        DEBUG_FUNCTION_LINE("Set socket option")
-
         serverSocket.bind(localEp);
-        DEBUG_FUNCTION_LINE("Bound socket")
-        running = true;
 
+        running = true;
         loop_thread = std::thread(server_loop, std::ref(serverSocket));
-        DEBUG_FUNCTION_LINE("Started loop thread")
+        DEBUG_FUNCTION_LINE("Started server with address %s:%u and id %u", localEp.address(), localEp.port(), DSU::server_id)
 
     }
     catch (const std::runtime_error& error){
@@ -139,8 +132,6 @@ void server_loop(sockets::udp_socket& socket){
                 DSU::Packets::Outgoing::VersionInfo versionInfo;
                 versionInfo.max_protocol_version = 1001;
 
-                headerOut.swap_member_endian();
-                versionInfo.swap_member_endian();
                 DEBUG_FUNCTION_LINE("Cursor at %u", packet.cursor())
 
                 packet.add_data(headerOut);
