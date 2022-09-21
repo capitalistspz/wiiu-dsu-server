@@ -343,8 +343,13 @@ namespace DSU::Packets {
         };
         struct OutgoingPacket {
             utils::writer m_writer;
+            static constexpr size_t LENGTH_OFFSET = 6;
+
+            static constexpr size_t CRC_OFFSET = 8;
+
             explicit OutgoingPacket(uint8_t* data, size_t size)
             : m_writer(data, size) {}
+
             // Header should always be added first
             void add_data(PacketData& data){
 
@@ -353,21 +358,22 @@ namespace DSU::Packets {
 
                 const auto posCur = m_writer.pos();
 
-                m_writer.seek(6);
+                if (!m_writer.seek(LENGTH_OFFSET))
+                    throw std::runtime_error("Failed to seek to pos");
 
-                m_writer.write<uint16_t>(posCur - 20);
+                m_writer.write<uint16_t>(SwapEndian<uint16_t>(posCur - 20));
 
                 m_writer.seek(posCur);
             }
             void set_crc32(){
                 const auto posCur = m_writer.pos();
 
-                m_writer.seek(8);
-                m_writer.write<uint32_t>(0); // 0 out the crc32
+                m_writer.seek(CRC_OFFSET);
+                m_writer.write<uint32_t>(0); // 0 out the crc32 before calculating crc for packet
 
-                m_writer.seek(posCur);
+                auto crc = SwapEndian<uint32_t>(utils::crc(m_writer.begin(), m_writer.begin() + posCur));
 
-                auto crc = utils::crc(m_writer.begin(), m_writer.begin() + m_writer.pos());
+                m_writer.seek(CRC_OFFSET);
                 m_writer.write<uint32_t>(crc);
 
                 m_writer.seek(posCur);
