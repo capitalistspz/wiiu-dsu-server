@@ -33,18 +33,6 @@ namespace utils {
             m_cursor += sizeof(value);
         }
 
-
-        template <typename T> requires (!std::is_pointer_v<T>)
-        /**
-         *
-         * @tparam T type to be written into the buffer
-         * @param value value to be read into the writer
-         */
-        void write(const T&& value){
-            memcpy(m_data + m_cursor, &value, sizeof(value));
-            m_cursor += sizeof(value);
-
-        }
         /**
          *
          * @param outBuffer the vector for the data to be written to
