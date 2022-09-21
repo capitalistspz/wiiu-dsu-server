@@ -37,7 +37,7 @@ int main(){
     WHBProcInit();
     WHBLogUdpInit();
     WHBLogPrint("Hello world");
-
+    map_buttons();
     start_server();
     return EXIT_SUCCESS;
 }
@@ -69,6 +69,8 @@ void start_server(){
     }
     DEBUG_FUNCTION_LINE("Waiting for server loop thread to join")
     loop_thread.join();
+    button_group_1.clear();
+    button_group_2.clear();
     WHBProcShutdown();
     WHBLogUdpDeinit();
 
@@ -203,15 +205,19 @@ void server_loop(sockets::udp_socket& socket){
                 data.packet_number = ++clients[senderEp].packet_number;
 
                 for (auto kp : button_group_1){
-                    if (vpadStatus.trigger & kp.first){
+                    if (vpadStatus.hold & kp.first){
                         data.button_mask_1 = data.button_mask_1 | kp.second;
                     }
                 }
                 for (auto kp : button_group_2){
-                    if (vpadStatus.trigger & kp.first){
+                    if (vpadStatus.hold & kp.first){
                         data.button_mask_2 = data.button_mask_2 | kp.second;
                     }
                 }
+                DEBUG_FUNCTION_LINE("Held: %u", vpadStatus.hold);
+                DEBUG_FUNCTION_LINE("Triggered: %u", vpadStatus.trigger)
+                DEBUG_FUNCTION_LINE("Released: %u", vpadStatus.release)
+
                 data.home_button = vpadStatus.trigger & VPADButtons ::VPAD_BUTTON_HOME;
                 data.touch_button = false; // No idea what this is equivalent to
                 data.l_stick.x = (uint8_t)std::round(((vpadStatus.leftStick.x + 1) / 2) * 256);
