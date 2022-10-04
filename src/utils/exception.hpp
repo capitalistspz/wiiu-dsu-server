@@ -6,7 +6,7 @@
 namespace utils {
     class errno_error  : public std::runtime_error {
     public:
-        errno_error() : runtime_error(std::string{"Error " + std::to_string(errno) + ": "} + strerror(errno)){
+        errno_error() : std::runtime_error(std::string{"Error " + std::to_string(errno) + ": "} + strerror(errno)){
 
         }
     };
