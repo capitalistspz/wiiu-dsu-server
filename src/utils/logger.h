@@ -1,3 +1,7 @@
+/*
+ * Taken from https://github.com/wiiu-env/WiiUPluginSystem/blob/master/plugins/example_plugin/src/utils/logger.h
+ */
+
 #pragma once
 
 #ifdef __cplusplus
