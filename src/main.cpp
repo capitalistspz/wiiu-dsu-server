@@ -43,32 +43,32 @@ void start_server(){
     std::thread loop_thread;
 
     sockets::udp_socket serverSocket;
-    DEBUG_FUNCTION_LINE("Initialized socket")
+    DEBUG_FUNCTION_LINE("Initialized socket");
     try {
         sockets::endpoint localEp{INADDR_ANY, 19470};
-        DEBUG_FUNCTION_LINE("Initialized local EP on %s:%u", localEp.address(), localEp.port())
+        DEBUG_FUNCTION_LINE("Initialized local EP on %s:%u", localEp.address(), localEp.port());
 
         serverSocket.set_option<int>(sockets::option_name::REUSE_ADDRESS, 1);
-        //serverSocket.set_option<int>(sockets::option_name::NON_BLOCK, 1);
-        DEBUG_FUNCTION_LINE("Set socket option")
+        serverSocket.set_option<int>(sockets::option_name::NON_BLOCK, 1);
+        DEBUG_FUNCTION_LINE("Set socket option");
 
         serverSocket.bind(localEp);
-        DEBUG_FUNCTION_LINE("Bound socket")
+        DEBUG_FUNCTION_LINE("Bound socket");
         running = true;
 
         loop_thread = std::thread(server_loop, std::ref(serverSocket));
-        DEBUG_FUNCTION_LINE("Started loop thread")
+        DEBUG_FUNCTION_LINE("Started loop thread");
 
     }
     catch (const std::runtime_error& error){
-        DEBUG_FUNCTION_LINE("An error occurred: %s", error.what())
+        DEBUG_FUNCTION_LINE("An error occurred: %s", error.what());
         running  = false;
     }
     catch (const std::invalid_argument& error){
-        DEBUG_FUNCTION_LINE("Invalid argument: %s", error.what())
+        DEBUG_FUNCTION_LINE("Invalid argument: %s", error.what());
         running  = false;
     }
-    DEBUG_FUNCTION_LINE("Waiting for server loop thread to join")
+    DEBUG_FUNCTION_LINE("Waiting for server loop thread to join");
     loop_thread.join();
 
     WHBLogUdpDeinit();
@@ -90,12 +90,12 @@ void server_loop(sockets::udp_socket& socket){
         }
 
         catch (const std::runtime_error& error){
-            DEBUG_FUNCTION_LINE("An error occurred: %s", error.what())
-            running  = false;
+            DEBUG_FUNCTION_LINE("An error occurred: %s", error.what());
+            running = false;
         }
         catch (const std::invalid_argument& error){
-            DEBUG_FUNCTION_LINE("Invalid argument: %s", error.what())
-            running  = false;
+            DEBUG_FUNCTION_LINE("Invalid argument: %s", error.what());
+            running = false;
         }
         if (recvBytes <= 0)
             continue;
@@ -106,7 +106,6 @@ void server_loop(sockets::udp_socket& socket){
         }
         else if (clients.empty())
             continue;
-
         VPADStatus status;
         VPADReadError error;
         VPADRead(VPADChan::VPAD_CHAN_0, &status, 1, &error);
@@ -116,11 +115,11 @@ void server_loop(sockets::udp_socket& socket){
             socket.send_to(reinterpret_cast<uint8_t*>(&status), sizeof(VPADStatus), sockets::msg_flags::DONT_WAIT, senderEp);
         }
         catch (const std::runtime_error& error){
-            DEBUG_FUNCTION_LINE("An error occurred: %s", error.what())
+            DEBUG_FUNCTION_LINE("An error occurred: %s", error.what());
             running  = false;
         }
     }
-    DEBUG_FUNCTION_LINE("Socket closed")
+    DEBUG_FUNCTION_LINE("Socket closed");
     running = false;
     socket.close();
 }
