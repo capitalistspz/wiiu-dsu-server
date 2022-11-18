@@ -7,8 +7,7 @@
 #include <vpad/input.h>
 #include <padscore/wpad.h>
 #include <padscore/kpad.h>
-#include <deque>
-#include <set>
+
 #include <array>
 #include <thread>
 #include <unordered_map>
@@ -16,7 +15,6 @@
 #include "net/endpoint.h"
 #include "net/udp_socket.h"
 
-#include "utils/reader.hpp"
 #include "utils/logger.h"
 #include "utils/letype.hpp"
 
@@ -64,10 +62,6 @@ void start_server(){
         DEBUG_FUNCTION_LINE("An error occurred: %s", error.what());
         running  = false;
     }
-    catch (const std::invalid_argument& error){
-        DEBUG_FUNCTION_LINE("Invalid argument: %s", error.what());
-        running  = false;
-    }
     DEBUG_FUNCTION_LINE("Waiting for server loop thread to join");
     loop_thread.join();
 
@@ -80,26 +74,23 @@ void server_loop(sockets::udp_socket& socket){
     std::array<uint8_t, 1024> bufferOut{};
 
     constexpr sockets::endpoint defaultEp{};
-
+    ssize_t recvBytes = 0;
+    ssize_t sentBytes = 0;
     while (running && WHBProcIsRunning()){
         sockets::endpoint senderEp{};
-        ssize_t recvBytes = 0;
 
-        try {
-            recvBytes = socket.receive_from(bufferIn.begin(), 1024, sockets::msg_flags::DONT_WAIT, senderEp);
-        }
-
-        catch (const std::runtime_error& error){
-            DEBUG_FUNCTION_LINE("An error occurred: %s", error.what());
-            running = false;
-        }
-        catch (const std::invalid_argument& error){
-            DEBUG_FUNCTION_LINE("Invalid argument: %s", error.what());
-            running = false;
-        }
-        if (recvBytes <= 0)
+        recvBytes = socket.receive_from(bufferIn.begin(), 1024, sockets::msg_flags::DONT_WAIT, senderEp);
+        if (recvBytes == 0)
             continue;
-
+        else if (recvBytes < 0){
+            if (recvBytes == EAGAIN || recvBytes == EWOULDBLOCK){
+                continue;
+            }
+            else {
+                DEBUG_FUNCTION_LINE("An error occured while receiving data: %s", strerror(-recvBytes));
+                running = false;
+            }
+        }
         if (senderEp != defaultEp && !clients.contains(senderEp)){
             DEBUG_FUNCTION_LINE("New client connected from %s:%u", senderEp.address(), senderEp.port());
             clients[senderEp] = 0;
@@ -111,13 +102,7 @@ void server_loop(sockets::udp_socket& socket){
         VPADRead(VPADChan::VPAD_CHAN_0, &status, 1, &error);
 
         status = SwapEndian(status);
-        try {
-            socket.send_to(reinterpret_cast<uint8_t*>(&status), sizeof(VPADStatus), sockets::msg_flags::DONT_WAIT, senderEp);
-        }
-        catch (const std::runtime_error& error){
-            DEBUG_FUNCTION_LINE("An error occurred: %s", error.what());
-            running  = false;
-        }
+        socket.send_to(reinterpret_cast<uint8_t*>(&status), sizeof(VPADStatus), sockets::msg_flags::DONT_WAIT, senderEp);
     }
     DEBUG_FUNCTION_LINE("Socket closed");
     running = false;
