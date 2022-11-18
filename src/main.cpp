@@ -83,7 +83,7 @@ void server_loop(sockets::udp_socket& socket){
         if (recvBytes == 0)
             continue;
         else if (recvBytes < 0){
-            if (recvBytes == EAGAIN || recvBytes == EWOULDBLOCK){
+            if (recvBytes == -EAGAIN || recvBytes == -EWOULDBLOCK){
                 continue;
             }
             else {
