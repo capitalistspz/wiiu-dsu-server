@@ -18,6 +18,10 @@ namespace sockets {
     {
         return static_cast<msg_flags>(static_cast<int>(a) | static_cast<int>(b));
     }
+    inline msg_flags operator&(msg_flags a, msg_flags b)
+    {
+        return static_cast<msg_flags>(static_cast<int>(a) & static_cast<int>(b));
+    }
 
     enum class option_name {
         REUSE_ADDRESS = SO_REUSEADDR,
@@ -45,34 +49,70 @@ namespace sockets {
         READ_WRITE = SHUT_RDWR
     };
 
-
     class udp_socket {
     public:
         udp_socket();
         ~udp_socket();
+
+        /**
+         * Binds the socket to an endpoint
+         * @param local_ep endpoint to bind the socket to
+         */
         void bind(const endpoint&);
-        ssize_t receive_from(uint8_t *buffer, uint16_t length, msg_flags flags, sockets::endpoint &out_remote_ep);
-        ssize_t send_to(uint8_t* buffer, uint16_t length, msg_flags flags, const sockets::endpoint &remote_ep);
 
-        void close();
-        void shutdown(shutdown_type shutdownType);
+        /**
+        * @param buffer the buffer to store the received m_data in
+        * @param length the capacity of the buffer
+        * @param flags flags to alter how the receive operation behaves
+        * @param out_remote_ep the remote endpoint that the data has been received from
+        * @returns number of bytes received, or else returns a negative error (see errno)
+        * */
+        ssize_t receive_from(uint8_t *buffer, uint16_t length, msg_flags flags, sockets::endpoint &out_remote_ep) noexcept;
 
-        void set_option(sockets::option_name name);
+        /**
+        * @param buffer the buffer to take the received m_data from
+        * @param length the number of bytes to read from the buffer
+        * @param flags flags to alter how the send operation behaves
+        * @param remote_ep the remote endpoint that the data will be sent to
+        * @returns number of bytes received, or else returns a negative error (see errno) if no m_data is received and the operation is non-blocking
+        * */
+        ssize_t send_to(uint8_t* buffer, uint16_t length, msg_flags flags, const sockets::endpoint &remote_ep) noexcept;
+
+        /**
+        * Closes the socket
+        */
+        void close() noexcept;
+
+        /**
+        * Shuts down socket io
+        * @param shutdownType the type of socket io operation to shutdown
+        */
+        bool shutdown(shutdown_type shutdownType) noexcept;
 
 // Compiler doesn't allow split declaration for these
-
+        /**
+         * Modifies socket options
+         * @tparam Value the type of the socket option value
+         * @param name the socket option
+         * @param value value of the option to be set
+         * @param whether the option was successfully set
+         */
         template <typename Value>
-        void set_option(sockets::option_name name, const Value &value) {
+        bool set_option(sockets::option_name name, const Value &value) noexcept {
             const auto result = ::setsockopt(socket_fd, SOL_SOCKET, (int)name, &value, sizeof(value));
-            if (result < 0)
-                throw std::runtime_error(std::strerror(errno));
+            return (result == 0);
         }
-
+        /**
+         * Retrieves the value of socket option
+         * @tparam Value the type of the socket option value
+         * @param name the socket option
+         * @param outValue the value
+         * @returns whether getting the option was a success
+         */
         template <typename Value>
-        void get_option(sockets::option_name name, Value &outValue) const {
+        bool get_option(sockets::option_name name, Value &outValue) const noexcept {
             const auto result = ::getsockopt(socket_fd, SOL_SOCKET, (int)name, outValue, sizeof(outValue));
-            if (result < 0)
-                throw std::runtime_error(std::strerror(errno));
+            return (result == 0);
         }
     private:
         int socket_fd;
