@@ -31,22 +31,22 @@ namespace sockets {
          * @param address ip address in bytes representation
          * @param port_number
          */
-        endpoint(in_addr_t address, uint16_t port_number)
+        endpoint(in_addr_t address, uint16_t port_number) noexcept
         : m_address_in() {
             m_address_in.sin_family = AF_INET;
             m_address_in.sin_addr.s_addr = htonl(address);
             m_address_in.sin_port = htons(port_number);
         }
 
-        explicit endpoint(const sockaddr_in& addr)
+        explicit endpoint(const sockaddr_in& addr) noexcept
         :m_address_in(addr){}
 
-        endpoint(const sockaddr& addr, size_t size)
+        endpoint(const sockaddr& addr, size_t size) noexcept
         : m_address_in(){
             std::memcpy(&m_address_in, &addr, size);
         }
 
-        explicit endpoint(const sockaddr_storage& storage)
+        explicit endpoint(const sockaddr_storage& storage) noexcept
         : m_address_in() {
             std::memcpy(&m_address_in, &storage, sizeof(storage));
         }
@@ -54,28 +54,28 @@ namespace sockets {
         /**
          * Creates an invalid endpoint
          */
-        endpoint() = default;
+        endpoint() noexcept = default;
 
-        endpoint(endpoint const &ep) = default;
+        endpoint(endpoint const &ep) noexcept = default;
 
         endpoint(endpoint&& ep) noexcept = default;
 
 
-        endpoint& operator=(const endpoint& rhs)= default;
+        endpoint& operator=(const endpoint& rhs) noexcept = default;
 
         endpoint& operator=(endpoint&& rhs) noexcept = default;
 
         /**
          * @return The capacity of the underlying socket endpoint
          */
-        [[nodiscard]] const sockaddr* data() const {
+        [[nodiscard]] const sockaddr* data() const noexcept {
             return (sockaddr*)&m_address_in;
         }
 
         /**
          * @return The capacity of the underlying socket endpoint
          */
-        [[nodiscard]] size_t size() const {
+        [[nodiscard]] size_t size() const noexcept {
             return sizeof(m_address_in);
         }
 
@@ -83,7 +83,7 @@ namespace sockets {
          *
          * @return The port of this endpoint in host order
          */
-        [[nodiscard]] uint16_t port() const {
+        [[nodiscard]] uint16_t port() const noexcept {
             return ntohs(m_address_in.sin_port);
         }
 
@@ -91,11 +91,11 @@ namespace sockets {
          *
          * @return The number and dots representation of the address endpoint
          */
-        [[nodiscard]] const char* address() const {
-            return inet_ntoa(m_address_in.sin_addr);
+        [[nodiscard]] std::string address() const {
+            return std::string{inet_ntoa(m_address_in.sin_addr)};
         }
 
-        auto operator <=> (const endpoint& ep) const{
+        auto operator <=> (const endpoint& ep) const noexcept {
             const auto thisValue = comparison_value();
             const auto thatValue = ep.comparison_value();
             using R = decltype(thisValue <=> thatValue);
@@ -106,11 +106,11 @@ namespace sockets {
             else
                 return R::greater;
         }
-        auto operator == (const endpoint& ep) const {
+        auto operator == (const endpoint& ep) const noexcept {
             return m_address_in.sin_port == ep.m_address_in.sin_port && m_address_in.sin_addr.s_addr == ep.m_address_in.sin_addr.s_addr;
         }
-        [[nodiscard]] uint64_t inline comparison_value() const {
-            return (static_cast<uint64_t>(m_address_in.sin_addr.s_addr) << 2) + m_address_in.sin_port;
+        [[nodiscard]] uint64_t inline comparison_value() const noexcept {
+            return (static_cast<uint64_t>(m_address_in.sin_addr.s_addr) << sizeof m_address_in.sin_port) + m_address_in.sin_port;
         }
     protected:
         sockaddr_in m_address_in;

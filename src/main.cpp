@@ -44,7 +44,7 @@ void start_server(){
     DEBUG_FUNCTION_LINE("Initialized socket");
     try {
         sockets::endpoint localEp{INADDR_ANY, 19470};
-        DEBUG_FUNCTION_LINE("Initialized local EP on %s:%u", localEp.address(), localEp.port());
+        DEBUG_FUNCTION_LINE("Initialized local EP on %s:%u", localEp.address().c_str(), localEp.port());
 
         serverSocket.set_option<int>(sockets::option_name::REUSE_ADDRESS, 1);
         serverSocket.set_option<int>(sockets::option_name::NON_BLOCK, 1);
@@ -92,7 +92,7 @@ void server_loop(sockets::udp_socket& socket){
             }
         }
         if (senderEp != defaultEp && !clients.contains(senderEp)){
-            DEBUG_FUNCTION_LINE("New client connected from %s:%u", senderEp.address(), senderEp.port());
+            DEBUG_FUNCTION_LINE("New client connected from %s:%u", senderEp.address().c_str(), senderEp.port());
             clients[senderEp] = 0;
         }
         else if (clients.empty())
